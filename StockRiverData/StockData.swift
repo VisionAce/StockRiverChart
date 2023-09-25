@@ -9,47 +9,14 @@ import Foundation
 
 struct StockRiverData: Identifiable, Equatable {
         
-    let yearMonth: Int
+    let yearMonth: Date
     
     // population is in million
     let 本益比股價基準: Double
     let 月平均收盤價 : Double
     
-    var id: Int { yearMonth }
+    var id: Date { yearMonth }
     
-    static var level1Example: [StockRiverData] {
-    
-        [StockRiverData(yearMonth: 202309, 本益比股價基準: 438.57, 月平均收盤價: 540),
-         StockRiverData(yearMonth: 202308, 本益比股價基準: 438.57, 月平均收盤價: 549.82),
-         StockRiverData(yearMonth: 201708, 本益比股價基準: 214.59, 月平均收盤價: 214.59)]
-    }
-    
-    static var level2Example: [StockRiverData] {
-        [StockRiverData(yearMonth: 202309, 本益比股價基準: 587.86 - 438.57, 月平均收盤價: 540),
-         StockRiverData(yearMonth: 202308, 本益比股價基準: 587.86 - 438.57, 月平均收盤價: 549.82),
-         StockRiverData(yearMonth: 201708, 本益比股價基準: 257.75 - 214.59, 月平均收盤價: 214.59)]
-    }
-    
-    static var level3Example: [StockRiverData] {
-        [StockRiverData(yearMonth: 202309, 本益比股價基準: 737.15 - 587.86, 月平均收盤價: 540),
-         StockRiverData(yearMonth: 202308, 本益比股價基準: 737.15 - 587.86, 月平均收盤價: 549.82),
-         StockRiverData(yearMonth: 201708, 本益比股價基準: 301.04 - 257.75, 月平均收盤價: 214.59)]
-    }
-    static var level4Example: [StockRiverData] {
-        [StockRiverData(yearMonth: 202309, 本益比股價基準: 886.45 - 737.15, 月平均收盤價: 540),
-         StockRiverData(yearMonth: 202308, 本益比股價基準: 886.45 - 737.15, 月平均收盤價: 549.82),
-         StockRiverData(yearMonth: 201708, 本益比股價基準: 344.20 - 301.04, 月平均收盤價: 214.59)]
-    }
-    static var level5Example: [StockRiverData] {
-        [StockRiverData(yearMonth: 202309, 本益比股價基準: 1035.74 - 886.45, 月平均收盤價: 540),
-         StockRiverData(yearMonth: 202308, 本益比股價基準: 1035.74 - 886.45, 月平均收盤價: 549.82),
-         StockRiverData(yearMonth: 201708, 本益比股價基準: 387.50 - 344.20, 月平均收盤價: 214.59)]
-    }
-    static var level6Example: [StockRiverData] {
-        [StockRiverData(yearMonth: 202309, 本益比股價基準: 1185.03 - 1035.74, 月平均收盤價: 540),
-         StockRiverData(yearMonth: 202308, 本益比股價基準: 1185.03 - 1035.74, 月平均收盤價: 549.82),
-         StockRiverData(yearMonth: 201708, 本益比股價基準: 430.66 - 387.50, 月平均收盤價: 214.59)]
-    }
 }
 
 struct StockSeries: Identifiable {
@@ -61,9 +28,6 @@ struct StockSeries: Identifiable {
 enum Constants {
     static let nStockAPiKey = "https://api.nstock.tw/v2/per-river/interview?stock_id=2330"
 }
-var stock:Stock?
-var responseText = ""
-
 
 
 // MARK: - Stock

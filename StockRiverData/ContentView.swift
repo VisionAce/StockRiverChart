@@ -10,7 +10,9 @@ import Charts
 
 struct ContentView: View {
     @State private var stock: Stock?
-    @State private var years = [String]()
+    @State private var dateString = "202309"
+    @State private var riverDate: Date?
+    @State private var years = [Date]()
     @State private var pERatios = [[String]]()
     @State private var pBRatios = [[String]]()
     @State private var averagePrice = [String]()
@@ -20,6 +22,11 @@ struct ContentView: View {
     @State private var level4DataEntriess = [StockRiverData]()
     @State private var level5DataEntriess = [StockRiverData]()
     @State private var level6DataEntriess = [StockRiverData]()
+    @State private var isShowedChart  = false
+    
+    let chartXScaleDomainString = ["201612", "202312"]
+    @State private var chartXScaleDomainDate = [Date]()
+    
     
     struct StockSeries: Identifiable {
         let type: String
@@ -46,22 +53,37 @@ struct ContentView: View {
             .font(.title)
             .foregroundStyle(.brown)
             
-            Chart(data, id: \.type) { dataSeries in
-                ForEach(dataSeries.stockData) { data in
-                    AreaMark(x: .value("year", data.yearMonth), y: .value("本益比股價基準", data.本益比股價基準))
-                    
-                    LineMark(x: .value("year", data.yearMonth), y: .value("股價", data.月平均收盤價))
-                        .foregroundStyle(.red)
-                    
+            Button("顯示河流圖") {
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "yyyyMM"
+                for i in 0...1 {
+                let date = dateFormatter.date(from: chartXScaleDomainString[i])
+                    chartXScaleDomainDate.append(date!)
                 }
-                .foregroundStyle(by: .value("River type", dataSeries.type))
                 
+                isShowedChart = true
                 
-            } // Chart
-            .chartXScale(domain: 201700...202350)
-            .aspectRatio(1, contentMode: .fit)
-            .chartScrollableAxes(.horizontal)
-            .padding()
+            }
+            
+            if isShowedChart {
+                
+                Chart(data, id: \.type) { dataSeries in
+                    ForEach(dataSeries.stockData) { data in
+                        AreaMark(x: .value("year", data.yearMonth), y: .value("本益比股價基準", data.本益比股價基準))
+                        
+                        LineMark(x: .value("year", data.yearMonth), y: .value("股價", data.月平均收盤價))
+                            .foregroundStyle(.red)
+                        
+                    }
+                    .foregroundStyle(by: .value("River type", dataSeries.type))
+                    
+                    
+                } // Chart
+                .chartXScale(domain: chartXScaleDomainDate[0]...chartXScaleDomainDate[1])
+                .aspectRatio(1, contentMode: .fit)
+                .chartScrollableAxes(.horizontal)
+                .padding()
+            }
             
         }
         .onAppear {
@@ -109,45 +131,49 @@ struct ContentView: View {
                         
                         for i in 0...73 {
                             if let stockYear = stock?.data.first?.河流圖資料[i].年月 {
-                                years.append(stockYear)
+                                let dateFormatter = DateFormatter()
+                                dateFormatter.dateFormat = "yyyyMM"
+                                riverDate = dateFormatter.date(from: stockYear)
+                                years.append(riverDate!)
                             }
                           
                         }
                         print(years)
+                        
                     
                         
                         let level1DataEntries = stride(from: 0, to: 74, by: 1).map { i in
-                          StockRiverData(yearMonth: Int(years[i])!, 本益比股價基準: Double(stock!.data.first!.河流圖資料[i].本益比股價基準[0])!, 月平均收盤價: Double(averagePrice[i])!)
+                          StockRiverData(yearMonth: years[i], 本益比股價基準: Double(stock!.data.first!.河流圖資料[i].本益比股價基準[0])!, 月平均收盤價: Double(averagePrice[i])!)
                         }
                         level1DataEntriess = level1DataEntries
                         print("\(level1DataEntries)\n\n\n")
                         
                         let level2DataEntries = stride(from: 0, to: 74, by: 1).map { i in
-                          StockRiverData(yearMonth: Int(years[i])!, 本益比股價基準: Double(stock!.data.first!.河流圖資料[i].本益比股價基準[1])!, 月平均收盤價: Double(averagePrice[i])!)
+                          StockRiverData(yearMonth: years[i], 本益比股價基準: Double(stock!.data.first!.河流圖資料[i].本益比股價基準[1])!, 月平均收盤價: Double(averagePrice[i])!)
                         }
                         level2DataEntriess = level2DataEntries
                         print("\(level2DataEntries)\n\n\n")
                         
                         let level3DataEntries = stride(from: 0, to: 74, by: 1).map { i in
-                          StockRiverData(yearMonth: Int(years[i])!, 本益比股價基準: Double(stock!.data.first!.河流圖資料[i].本益比股價基準[2])!, 月平均收盤價: Double(averagePrice[i])!)
+                          StockRiverData(yearMonth: years[i], 本益比股價基準: Double(stock!.data.first!.河流圖資料[i].本益比股價基準[2])!, 月平均收盤價: Double(averagePrice[i])!)
                         }
                         level3DataEntriess = level3DataEntries
                         print("\(level3DataEntries)\n\n\n")
                         
                         let level4DataEntries = stride(from: 0, to: 74, by: 1).map { i in
-                          StockRiverData(yearMonth: Int(years[i])!, 本益比股價基準: Double(stock!.data.first!.河流圖資料[i].本益比股價基準[3])!, 月平均收盤價: Double(averagePrice[i])!)
+                          StockRiverData(yearMonth: years[i], 本益比股價基準: Double(stock!.data.first!.河流圖資料[i].本益比股價基準[3])!, 月平均收盤價: Double(averagePrice[i])!)
                         }
                         level4DataEntriess = level4DataEntries
                         print("\(level4DataEntries)\n\n\n")
                         
                         let level5DataEntries = stride(from: 0, to: 74, by: 1).map { i in
-                          StockRiverData(yearMonth: Int(years[i])!, 本益比股價基準: Double(stock!.data.first!.河流圖資料[i].本益比股價基準[4])!, 月平均收盤價: Double(averagePrice[i])!)
+                          StockRiverData(yearMonth: years[i], 本益比股價基準: Double(stock!.data.first!.河流圖資料[i].本益比股價基準[4])!, 月平均收盤價: Double(averagePrice[i])!)
                         }
                         level5DataEntriess = level5DataEntries
                         print("\(level5DataEntries)\n\n\n")
                         
                         let level6DataEntries = stride(from: 0, to: 74, by: 1).map { i in
-                          StockRiverData(yearMonth: Int(years[i])!, 本益比股價基準: Double(stock!.data.first!.河流圖資料[i].本益比股價基準[5])!, 月平均收盤價: Double(averagePrice[i])!)
+                          StockRiverData(yearMonth: years[i], 本益比股價基準: Double(stock!.data.first!.河流圖資料[i].本益比股價基準[5])!, 月平均收盤價: Double(averagePrice[i])!)
                         }
                         level6DataEntriess = level6DataEntries
                         print("\(level6DataEntries)")
@@ -160,6 +186,13 @@ struct ContentView: View {
         }
         .padding()
     }
+    
+    func formatDate(_ date: Date) -> String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy/MM"
+        return dateFormatter.string(from: date)
+    }
+    
 }
 
 #Preview {
