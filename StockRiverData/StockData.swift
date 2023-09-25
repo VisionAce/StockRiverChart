@@ -12,7 +12,8 @@ struct StockRiverData: Identifiable, Equatable {
     let yearMonth: Date
     
     // population is in million
-    let 本益比股價基準: Double
+    let 本益比股價基準Max: Double
+    let 本益比股價基準Min: Double
     let 月平均收盤價 : Double
     
     var id: Date { yearMonth }
