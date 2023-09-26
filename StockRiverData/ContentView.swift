@@ -9,6 +9,7 @@ import SwiftUI
 import Charts
 
 struct ContentView: View {
+    @State var selectedElement: StockRiverData?
     @State private var stock: Stock?
     @State private var riverDate: Date?
     @State private var years = [Date]()
@@ -32,7 +33,7 @@ struct ContentView: View {
     }
     
     var data: [StockSeries] {
-        [StockSeries(type: "11.78倍", stockData: level1DataEntriess),
+        [StockSeries(type: "11.78倍 \(selectedElement?.本益比股價基準Max ?? 0.0)", stockData: level1DataEntriess),
          StockSeries(type: "15.79倍", stockData: level2DataEntriess),
          StockSeries(type: "19.80倍", stockData: level3DataEntriess),
          StockSeries(type: "23.81倍", stockData: level4DataEntriess),
@@ -51,14 +52,17 @@ struct ContentView: View {
             .font(.title)
             .foregroundStyle(.brown)
             Text("河流圖資料筆數：\(riverDataCount)")
-            Button("顯示河流圖") {
-                isShowedChart = true
-            }
-            
+            Toggle(isShowedChart ? "收起河流圖" : "顯示河流圖", isOn: $isShowedChart.animation())
+                .padding()
+  
             if isShowedChart {
-                
+                Text("本益比")
+                    .font(.title)
+                    .bold()
+                    .foregroundStyle(.indigo)
                 Chart(data, id: \.type) { dataSeries in
                     ForEach(dataSeries.stockData) { data in
+                    
                         AreaMark(x: .value("year", data.yearMonth), yStart: .value("本益比股價基準", data.本益比股價基準Min), yEnd: .value("本益比股價基準", data.本益比股價基準Max))
                         
                         LineMark(x: .value("year", data.yearMonth), y: .value("股價", data.月平均收盤價))
@@ -68,12 +72,96 @@ struct ContentView: View {
                     .foregroundStyle(by: .value("River type", dataSeries.type))
                     
                     
+                    
                 } // Chart
                 .chartXScale(domain: years[73]...years[0])
                 .aspectRatio(1, contentMode: .fit)
                 .chartScrollableAxes(.horizontal)
                 .padding()
+                .opacity(0.8)
+                // scan line
+                .chartOverlay { proxy in
+                    GeometryReader { geo in
+                        Rectangle().fill(.clear).contentShape(Rectangle())
+                            .gesture(
+                                SpatialTapGesture()
+                                    .onEnded { value in
+                                        let element = findElement(location: value.location, proxy: proxy, geometry: geo)
+                                        if selectedElement?.yearMonth == element?.yearMonth {
+                                            // If tapping the same element, clear the selection.
+                                            selectedElement = nil
+                                        } else {
+                                            selectedElement = element
+                                        }
+                                    }
+                                    .exclusively(
+                                        before: DragGesture()
+                                            .onChanged { value in
+                                                selectedElement = findElement(location: value.location, proxy: proxy, geometry: geo)
+                                            }
+                                                
+                                            
+                                    )
+                            )
+                    }
+                }
+                
+                // draw scan line
+                .chartBackground { proxy in
+                    ZStack(alignment: .topLeading) {
+                        GeometryReader { geo in
+                            if let selectedElement = selectedElement {
+                                let dateInterval = Calendar.current.dateInterval(of: .year, for: selectedElement.yearMonth)!
+                                let startPositionX = proxy.position(forX: dateInterval.start) ?? 0
+                                let midStartPositionX = startPositionX + geo[proxy.plotFrame!].origin.x
+                                let lineHeight = geo[proxy.plotFrame!].maxY
+                                let boxWidth: CGFloat = 150
+                                let boxOffset = max(0, min(geo.size.width - boxWidth, midStartPositionX - boxWidth / 2))
+
+                              Rectangle()
+                                  .fill(.quaternary)
+                                  .frame(width: 2, height: lineHeight)
+                                  .position(x: midStartPositionX, y: lineHeight / 2)
+
+                                VStack(alignment: .leading) {
+                                    Text("\(selectedElement.yearMonth, format: .dateTime.year().month())")
+                                        .font(.callout)
+                                        .foregroundStyle(.secondary)
+                                    Text("\(data[0].type)")
+                                        .font(.title2.bold())
+                                        .foregroundColor(.primary)
+                        
+                                }
+                                .frame(width: boxWidth, alignment: .leading)
+                                .background {
+                                    ZStack {
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .fill(.background)
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .fill(.quaternary.opacity(0.7))
+                                    }
+                                    .padding([.leading, .trailing], -8)
+                                    .padding([.top, .bottom], -4)
+                                }
+                                .offset(x: boxOffset)
+                            }
+                        }
+                    }
+                }
+                .frame(height: 250)
+                .padding()
+                
+                
+                HStack {
+                    Image( systemName: "circle.fill")
+                        .foregroundStyle(.black)
+                    Text("股價\(selectedElement?.月平均收盤價 ?? 0.0, specifier: "%.2f")")
+                        .foregroundStyle(.black)
+                    Spacer()
+                }
+                .padding()
             }
+            
             
         }
         .onAppear {
@@ -184,6 +272,29 @@ struct ContentView: View {
         }
         .padding()
     }
+    
+    func findElement(location: CGPoint, proxy: ChartProxy, geometry: GeometryProxy) -> StockRiverData? {
+        let relativeXPosition = location.x - geometry[proxy.plotFrame!].origin.x
+        if let date = proxy.value(atX: relativeXPosition) as Date? {
+            // Find the closest date element.
+            var minDistance: TimeInterval = .infinity
+            var index: Int? = nil
+            for dataIndex in level1DataEntriess.indices {
+                let nthDataDistance = level1DataEntriess[dataIndex].yearMonth.distance(to: date)
+                if abs(nthDataDistance) < minDistance {
+                    minDistance = abs(nthDataDistance)
+                    index = dataIndex
+                }
+            }
+            if let index = index {
+                return level1DataEntriess[index]
+            }
+                    
+        }
+        return nil
+    }
+    
+    
 }
 
 #Preview {
